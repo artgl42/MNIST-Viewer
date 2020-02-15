@@ -1,0 +1,22 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:MNIST_Viewer.Styles"
+                    xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls">
+
+    <Style TargetType="{x:Type Slider}" 
+           BasedOn="{StaticResource MahApps.Metro.Styles.Slider}">
+        <Setter Property="Width" Value="300"/>
+        <Setter Property="Orientation" Value="Horizontal"/>
+        <Setter Property="Controls:SliderHelper.EnableMouseWheel" Value="MouseHover"/>
+        <Setter Property="AutoToolTipPlacement" Value="TopLeft"/>
+    </Style>
+
+    <Style TargetType="{x:Type Controls:RangeSlider}" 
+           BasedOn="{StaticResource MahApps.Metro.Styles.RangeSlider}">
+        <Setter Property="Width" Value="300"/>
+        <Setter Property="Orientation" Value="Horizontal"/>
+        <Setter Property="Controls:SliderHelper.EnableMouseWheel" Value="MouseHover"/>
+        <Setter Property="AutoToolTipPlacement" Value="TopLeft"/>
+    </Style>
+
+</ResourceDictionary>

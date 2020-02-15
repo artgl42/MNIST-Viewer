@@ -1,0 +1,318 @@
+﻿<Controls:MetroWindow x:Class="MNIST_Viewer.MainWindow" 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+    xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+    xmlns:vm="clr-namespace:MNIST_Viewer.ViewModel"
+    xmlns:toolbox="clr-namespace:MNIST_Viewer.Toolbox"
+    Width="800"
+    Height="630"
+    MinWidth="250"
+    MinHeight="250"
+    Title="MNISTViewer" 
+    BorderThickness="0"
+    Background="{DynamicResource BackgroundImage}"
+    GlowBrush="LightSkyBlue"
+    ResizeMode="CanResizeWithGrip"
+    WindowStartupLocation="CenterScreen">
+
+    <Window.DataContext>
+        <vm:MNISTViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <ImageBrush x:Key="BackgroundImage" 
+                    Stretch="Fill"
+                    ImageSource="pack://application:,,,/MNIST_Viewer;component/Resources/background.png" />
+        <BooleanToVisibilityConverter x:Key="boolToVisibility" />
+        <toolbox:StringToImageConverter x:Key="stringToImageConverter" />
+    </Window.Resources>
+
+    <Window.InputBindings>
+        <KeyBinding Key="Right" Command="{Binding NextPageCommand}"/>
+        <KeyBinding Key="Left" Command="{Binding PrevPageCommand}"/>
+    </Window.InputBindings>
+
+    <Controls:MetroWindow.RightWindowCommands>
+        <Controls:WindowCommands ShowLastSeparator="False">
+            <Button Click="Load_Click" 
+                    ToolTip="Load images" 
+                    Content="LOAD" 
+                    FontWeight="Bold"/>
+
+            <Button Click="Options_Click"
+                    ToolTip="Show options" 
+                    Content="Options"
+                    IsEnabled="False"/>
+
+            <Button Click="Filter_Click" 
+                    ToolTip="Show filter" 
+                    Content="Filter"
+                    IsEnabled="{Binding ElementName=listBoxImgs, Path=HasItems}"/>
+        </Controls:WindowCommands>
+    </Controls:MetroWindow.RightWindowCommands>
+
+    <Controls:MetroWindow.Flyouts>
+        <Controls:FlyoutsControl>
+
+            <Controls:Flyout Name="loadFlyout" 
+                             Header="Load"
+                             IsModal="True"
+                             Position="Top" 
+                             Opacity="0.85">
+
+                <ScrollViewer HorizontalScrollBarVisibility="Auto">
+                    <Grid Margin="5 15" 
+                          HorizontalAlignment="Center">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Row="0" Grid.Column="0"                             
+                                 Controls:TextBoxHelper.ButtonCommand="{Binding OpenImagesFileCommand}"
+                                 Controls:TextBoxHelper.Watermark="{Binding ImagesFile, Mode=TwoWay}"
+                                 ToolTip="{Binding ImagesFile}" 
+                                 Style="{StaticResource SearchTextBox}"/>
+                        <TextBox Grid.Row="1" Grid.Column="0"
+                                 Controls:TextBoxHelper.ButtonCommand="{Binding OpenLabelsFileCommand}"
+                                 Controls:TextBoxHelper.Watermark="{Binding LabelsFile, Mode=TwoWay}"
+                                 ToolTip="{Binding LabelsFile}"
+                                 Style="{StaticResource SearchTextBox}"/>
+
+
+                        <Button Content="Load" Grid.Row="0" Grid.Column="1"
+                                Margin="2"
+                                Command="{Binding LoadFilesCommand}" />
+
+                        <Controls:ToggleSwitch x:Name="loadSwitch" Grid.Row="1" Grid.Column="1"
+                                               HorizontalAlignment="Center"
+                                               Margin="2"
+                                               IsChecked="False"
+                                               OffLabel="All"
+                                               OnLabel="Select"
+                                               Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" >
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="Unchecked">
+                                    <i:InvokeCommandAction Command="{Binding ResetSettingCommand}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </Controls:ToggleSwitch>
+
+                        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Margin="0 15 0 10"
+                                    HorizontalAlignment="Stretch"
+                                    Visibility="{Binding ElementName=loadSwitch, Path=IsChecked, Converter={StaticResource boolToVisibility}}">
+
+                            <StackPanel Orientation="Horizontal">
+                                <Controls:RangeSlider Maximum="60000"
+                                                      Minimum="0"
+                                                      Width="290"
+                                                      LowerValue="{Binding StartImageForLoad, Mode=TwoWay}"
+                                                      UpperValue="{Binding EndImageForLoad, Mode=TwoWay}" />
+                                <TextBlock Text="From" 
+                                           Margin="5 0"
+                                           VerticalAlignment="Center"/>
+                                <Controls:NumericUpDown ButtonsAlignment="Right" 
+                                                        Maximum="60000" 
+                                                        Minimum="0"
+                                                        Value="{Binding StartImageForLoad, Mode=TwoWay}"
+                                                        ToolTip="Begin number of image for load"/>
+                                <TextBlock Text="to" 
+                                           Margin="5 0"
+                                           VerticalAlignment="Center"/>
+                                <Controls:NumericUpDown ButtonsAlignment="Right" 
+                                                        Maximum="60000" 
+                                                        Minimum="0"
+                                                        Interval="1"
+                                                        Value="{Binding EndImageForLoad, Mode=TwoWay}"
+                                                        ToolTip="End number of image for load"/>
+                                <TextBlock Text="images:" 
+                                           Margin="5 0"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding ImageCountForLoad}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal"
+                                        Margin="0 15 0 0">
+                                <Slider Maximum="1000"
+                                        Minimum="1"
+                                        Width="290"
+                                        ToolTip="The images on the page"
+                                        Value="{Binding PageSize, Mode=TwoWay}" />
+                                <TextBlock Text="Page size" 
+                                           Margin="5 0"
+                                           VerticalAlignment="Center"/>
+                                <Controls:NumericUpDown ButtonsAlignment="Right" 
+                                                        Margin="5 0"
+                                                        Maximum="1000" 
+                                                        Minimum="1"
+                                                        Interval="1"
+                                                        Value="{Binding PageSize, Mode=TwoWay}"
+                                                        ToolTip="The images on the page"/>
+                                <TextBlock Text="images" 
+                                           Margin="5 0 0 0"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </Controls:Flyout>
+            <Controls:Flyout Name="listBoxItemFlyout" 
+                             IsOpen="{Binding OpenFlyout}"
+                             Header="Image (HEX)" 
+                             Position="Left" 
+                             Opacity="0.95">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                              HorizontalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" 
+                                    HorizontalAlignment="Center">
+                            <Image Source="{Binding StringPixels,Converter={StaticResource stringToImageConverter}}" 
+                                   Width="280" 
+                                   Height="280"
+                                   Margin="10 0"
+                                   ToolTip="{Binding CurrentImage.Label}"/>
+                            <!--<TextBlock Text="{Binding CurrentImage.Label}" 
+                                       VerticalAlignment="Center"
+                                       FontFamily="Courier New" 
+                                       FontSize="72"
+                                       ToolTip="Label"/>-->
+                        </StackPanel>
+                        <TextBox Text="{Binding StringPixels, Mode=TwoWay}"
+                                 Margin="10"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 FontFamily="Courier New" 
+                                 FontSize="14"
+                                 ToolTip="Image code"/>
+                    </StackPanel>
+                    
+                </ScrollViewer>
+            </Controls:Flyout>
+
+            <Controls:Flyout Name="filterFlyout" 
+                             TitleVisibility="Hidden" 
+                             CloseButtonVisibility="Hidden" 
+                             Position="Right" 
+                             Opacity="0.85">
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Orientation="Vertical"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Margin="5 0">
+
+                        <Controls:Badged Tag="0" Badge="{Binding NumberCounter[0]}">
+                            <ToggleButton />
+                        </Controls:Badged>
+
+                        <Controls:Badged Tag="1" Badge="{Binding NumberCounter[1]}">
+                            <ToggleButton />
+                        </Controls:Badged>
+
+                        <Controls:Badged Tag="2" Badge="{Binding NumberCounter[2]}">
+                            <ToggleButton />
+                        </Controls:Badged>
+
+                        <Controls:Badged Tag="3" Badge="{Binding NumberCounter[3]}">
+                            <ToggleButton />
+                        </Controls:Badged>
+
+                        <Controls:Badged Tag="4" Badge="{Binding NumberCounter[4]}">
+                            <ToggleButton />
+                        </Controls:Badged>
+
+                        <Controls:Badged Tag="5" Badge="{Binding NumberCounter[5]}">
+                            <ToggleButton />
+                        </Controls:Badged>
+
+                        <Controls:Badged Tag="6" Badge="{Binding NumberCounter[6]}">
+                            <ToggleButton />
+                        </Controls:Badged>
+
+                        <Controls:Badged Tag="7" Badge="{Binding NumberCounter[7]}">
+                            <ToggleButton />
+                        </Controls:Badged>
+
+                        <Controls:Badged Tag="8" Badge="{Binding NumberCounter[8]}">
+                            <ToggleButton />
+                        </Controls:Badged>
+
+                        <Controls:Badged Tag="9" Badge="{Binding NumberCounter[9]}">
+                            <ToggleButton />
+                        </Controls:Badged>
+                    </StackPanel>
+                </ScrollViewer>
+            </Controls:Flyout>
+        </Controls:FlyoutsControl>
+    </Controls:MetroWindow.Flyouts>
+
+    <Grid>
+
+        <ScrollViewer toolbox:ScrollViewerBehavior.AutoScrollToTop="{Binding ScrollViewerReset, Mode=TwoWay}" >
+            <ListBox Name="listBoxImgs" 
+                     ItemsSource="{Binding VisibleCollection}"
+                     SelectedItem="{Binding CurrentImage}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseDoubleClick">
+                        <i:InvokeCommandAction Command="{Binding ShowItemCommand}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </ListBox>
+        </ScrollViewer>
+
+        <StackPanel Background="Black"
+                    Opacity="0.15"
+                    Margin="0 10"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom">
+            <StackPanel.Triggers>
+                <EventTrigger RoutedEvent="MouseMove">
+                    <EventTrigger.Actions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" Duration="0:0:0.5" To="0.85" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger.Actions>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="MouseLeave">
+                    <EventTrigger.Actions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" Duration="0:0:1" To="0.15" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger.Actions>
+                </EventTrigger>
+            </StackPanel.Triggers>
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+
+                <Button Command="{Binding PrevPageCommand}" 
+                        CommandParameter="{Binding ElementName=scrollViewer}"
+                        Style="{StaticResource NavigationLeftButton}"
+                        ToolTip="Prev page"/>
+
+                <ComboBox ItemsSource="{Binding PageNumbers}"
+                          SelectedIndex="{Binding CurrentPage}"
+                          ToolTip="Select page"/>
+
+                <Button Command="{Binding NextPageCommand}" 
+                        CommandParameter="{Binding ElementName=scrollViewer}"
+                        Style="{StaticResource NavigationRightButton}"
+                        ToolTip="Next page"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Controls:MetroWindow>

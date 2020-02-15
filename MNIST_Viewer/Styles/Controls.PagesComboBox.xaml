@@ -1,0 +1,18 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:MNIST_Viewer.Styles"
+                    xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls">
+
+    <Style TargetType="{x:Type ComboBox}" 
+           BasedOn="{StaticResource VirtualisedMetroComboBox}">
+        <Setter Property="Margin" Value="10 0"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="MaxDropDownHeight" Value="250"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Controls:TextBoxHelper.Watermark" Value="Page"/>
+    </Style>
+
+</ResourceDictionary>
